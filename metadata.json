@@ -1,0 +1,6 @@
+{
+  "name": "DigiTraining Assistant",
+  "description": "AI Agent untuk Persiapan Pelatihan Digital — BLSDM Komdigi Surabaya",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

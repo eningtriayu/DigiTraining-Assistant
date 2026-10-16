@@ -1,0 +1,120 @@
+import fs from 'fs';
+import path from 'path';
+import sharp from 'sharp';
+
+const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 205" width="1200" height="205">
+  <defs>
+    <style>
+      .title-1 { font-family: 'Liberation Sans', Arial, sans-serif; font-size: 28px; font-weight: 800; fill: #2B3542; letter-spacing: 0.3px; }
+      .title-2 { font-family: 'Liberation Sans', Arial, sans-serif; font-size: 19.5px; font-weight: 700; fill: #475569; letter-spacing: 0.1px; }
+      .title-3 { font-family: 'Liberation Sans', Arial, sans-serif; font-size: 21.5px; font-weight: 800; fill: #2B3542; letter-spacing: 0.3px; }
+      .address { font-family: 'Liberation Sans', Arial, sans-serif; font-size: 15px; font-weight: 400; fill: #475569; letter-spacing: 0.1px; }
+    </style>
+  </defs>
+
+  <!-- Background White -->
+  <rect width="1200" height="205" fill="#FFFFFF"/>
+
+  <!-- LOGO EMBLEM (KOMDIGI OFFICIAL DIGITAL NODES) -->
+  <g transform="translate(15, 6)">
+    <!-- Maroon/Red square at top left -->
+    <rect x="52" y="24" width="16" height="16" rx="3" fill="#8B1D2C" />
+
+    <!-- Cyan upper path -->
+    <rect x="94" y="10" width="20" height="20" rx="4.5" fill="#38A7E8" />
+    <rect x="114" y="20" width="20" height="20" rx="4.5" fill="#38A7E8" />
+    <rect x="94" y="24" width="24" height="22" rx="3.5" fill="#38A7E8" />
+    <rect x="94" y="40" width="20" height="20" rx="4.5" fill="#38A7E8" />
+
+    <!-- Cyan middle cluster -->
+    <rect x="94" y="70" width="20" height="20" rx="4.5" fill="#4299E1" />
+    <rect x="114" y="78" width="20" height="20" rx="4.5" fill="#4299E1" />
+    <rect x="94" y="78" width="28" height="20" rx="3.5" fill="#4299E1" />
+
+    <!-- Deep Blue lower L-shaped path -->
+    <rect x="50" y="68" width="22" height="22" rx="4.5" fill="#1C5B9E" />
+    <rect x="50" y="88" width="22" height="22" rx="4.5" fill="#1C5B9E" />
+    <rect x="50" y="108" width="22" height="22" rx="4.5" fill="#1C5B9E" />
+    <rect x="70" y="108" width="22" height="22" rx="4.5" fill="#1C5B9E" />
+    <rect x="90" y="108" width="22" height="22" rx="4.5" fill="#1C5B9E" />
+    <!-- Blue bridge fills -->
+    <rect x="52" y="76" width="18" height="38" fill="#1C5B9E" />
+    <rect x="62" y="110" width="38" height="18" fill="#1C5B9E" />
+
+    <!-- Yellow square at bottom right -->
+    <rect x="116" y="108" width="18" height="18" rx="3.5" fill="#EAB308" />
+
+    <!-- Wordmark KOMDIGI -->
+    <g transform="translate(12, 134)">
+      <!-- K -->
+      <path d="M 12 0 L 17 0 L 17 17 L 12 17 Z M 16 9 L 26 0 L 32 0 L 20 10.5 L 33 17 L 27 17 L 16 11 Z" fill="#242D38"/>
+      <!-- O -->
+      <path d="M 43 0 C 37 0 34 4 34 8.5 C 34 13 37 17 43 17 C 49 17 52 13 52 8.5 C 52 4 49 0 43 0 Z M 43 4 C 46 4 47.5 6 47.5 8.5 C 47.5 11 46 13 43 13 C 40 13 38.5 11 38.5 8.5 C 38.5 6 40 4 43 4 Z" fill="#242D38"/>
+      <!-- M -->
+      <path d="M 56 0 L 61 0 L 66 10 L 71 0 L 76 0 L 76 17 L 71.5 17 L 71.5 6 L 67 15 L 65 15 L 60.5 6 L 60.5 17 L 56 17 Z" fill="#242D38"/>
+      <!-- D with horizontal dash in middle -->
+      <path d="M 81 0 L 89 0 C 95 0 99 3.5 99 8.5 C 99 13.5 95 17 89 17 L 81 17 Z M 85.5 4 L 85.5 7.5 L 94 7.5 L 94 9.5 L 85.5 9.5 L 85.5 13 L 89 13 C 92 13 94.5 11.5 94.5 8.5 C 94.5 5.5 92 4 89 4 Z" fill="#242D38"/>
+      <rect x="79" y="7.5" width="10" height="2" fill="#242D38"/>
+      <!-- I -->
+      <path d="M 105 0 L 110 0 L 110 17 L 105 17 Z" fill="#242D38"/>
+      <!-- G -->
+      <path d="M 124 0 C 117.5 0 114 4 114 8.5 C 114 13 117.5 17 124 17 C 129.5 17 133 13.5 133 9.5 L 124 9.5 L 124 12 L 128.5 12 C 128 13 126.5 14 124 14 C 120.5 14 118.5 11.5 118.5 8.5 C 118.5 5.5 120.5 3 124 3 C 126.5 3 128.5 4.5 129 6 L 133 4.5 C 131.5 1.8 128 0 124 0 Z" fill="#242D38"/>
+      <!-- I -->
+      <path d="M 138 0 L 143 0 L 143 17 L 138 17 Z" fill="#242D38"/>
+    </g>
+  </g>
+
+  <!-- TEXT RIGHT -->
+  <g transform="translate(195, 20)">
+    <text x="0" y="14" class="title-1">KEMENTERIAN KOMUNIKASI DAN DIGITAL RI</text>
+    <text x="0" y="44" class="title-2">BADAN PENGEMBANGAN SUMBER DAYA MANUSIA KOMUNIKASI DAN DIGITAL</text>
+    <text x="0" y="72" class="title-3">BALAI PELATIHAN SUMBER DAYA MANUSIA KOMUNIKASI DAN DIGITAL</text>
+    <text x="0" y="99" class="title-3">SURABAYA</text>
+    <text x="0" y="130" class="address">Jl. Raya Ketajen No. 36, Sidoarjo, 61254, Telp. (031) 8011944, bpsdm.komdigi.go.id/upt/surabaya</text>
+  </g>
+
+  <!-- DOUBLE BOTTOM LINES (OFFICIAL GOVERNMENT KOP SURAT RULE) -->
+  <line x1="8" y1="184" x2="1192" y2="184" stroke="#334155" stroke-width="3" />
+  <line x1="8" y1="190" x2="1192" y2="190" stroke="#64748B" stroke-width="1.2" />
+</svg>
+`;
+
+async function main() {
+  const publicDir = path.resolve('public/images');
+  if (!fs.existsSync(publicDir)) {
+    fs.mkdirSync(publicDir, { recursive: true });
+  }
+
+  const svgPath = path.join(publicDir, 'kop-komdigi-surabaya.svg');
+  const pngPath = path.join(publicDir, 'kop-komdigi-surabaya.png');
+
+  fs.writeFileSync(svgPath, svgContent, 'utf8');
+
+  // Convert to high-resolution PNG
+  const pngBuffer = await sharp(Buffer.from(svgContent))
+    .png()
+    .toBuffer();
+
+  fs.writeFileSync(pngPath, pngBuffer);
+  console.log('PNG generated at:', pngPath, 'Size:', pngBuffer.length);
+
+  // Generate base64 ts file for instant in-memory DOCX / PDF embed
+  const base64 = pngBuffer.toString('base64');
+  const tsContent = `/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+// Official Kop Surat Balai Pelatihan SDM Komunikasi dan Digital Surabaya (Komdigi)
+export const KOP_SURAT_IMAGE_URL = '/images/kop-komdigi-surabaya.png';
+export const KOP_SURAT_SVG_URL = '/images/kop-komdigi-surabaya.svg';
+
+// Base64 PNG representation for instant offline DOCX generation without fetch overhead
+export const KOP_SURAT_PNG_BASE64 = '${base64}';
+`;
+
+  fs.writeFileSync(path.resolve('src/utils/kopSuratAsset.ts'), tsContent, 'utf8');
+  console.log('TypeScript asset written to src/utils/kopSuratAsset.ts');
+}
+
+main().catch(console.error);

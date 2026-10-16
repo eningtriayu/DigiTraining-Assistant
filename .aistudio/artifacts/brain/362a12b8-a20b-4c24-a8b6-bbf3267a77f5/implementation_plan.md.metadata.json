@@ -1,0 +1,6 @@
+{
+  "summary": "Revisi rencana implementasi DigiTraining Assistant: menghapus field 'Nama Akademi' dari formulir pelatihan baru serta meniadakan seluruh diksi terkait DTS (Digital Talent Scholarship) dan akademinya (GTA, TA, DEA, dll) di seluruh aplikasi dan dokumen. Fokus diarahkan murni pada program pelatihan digital BLSDM Komdigi Surabaya.",
+  "updatedAt": "2026-10-15T23:43:10.196908228Z",
+  "requestFeedback": true,
+  "userFacing": true
+}
