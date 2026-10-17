@@ -43,34 +43,45 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   isCloudConnected,
 }) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [filterTab, setFilterTab] = useState<'my' | 'shared' | 'all'>('my');
+  const [filterTab, setFilterTab] = useState<'all' | 'my' | 'shared'>('all');
+
+  // Robust check matching role, NIP, ID, or name
+  const isMyProject = (p: TrainingProject): boolean => {
+    if (!p) return false;
+    if (p.creatorId && p.creatorId === currentInstructor.id) return true;
+    if (p.creatorNip && p.creatorNip === currentInstructor.nip) return true;
+    if (p.creatorRole && p.creatorRole === currentInstructor.role) return true;
+    if (p.creatorName && currentInstructor.name) {
+      const pSimple = p.creatorName.toLowerCase().split(',')[0].trim();
+      const currSimple = currentInstructor.name.toLowerCase().split(',')[0].trim();
+      if (pSimple && currSimple && (pSimple.includes(currSimple) || currSimple.includes(pSimple))) {
+        return true;
+      }
+    }
+    if (!p.creatorId && !p.creatorName) return true;
+    return false;
+  };
 
   // Filter projects by search query and ownership
   const filtered = projects.filter((p) => {
     const matchesSearch =
       p.input.trainingName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.input.targetAudience.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (p.creatorName && p.creatorName.toLowerCase().includes(searchQuery.toLowerCase()));
+      (p.creatorName && p.creatorName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (p.creatorRole && p.creatorRole.toLowerCase().includes(searchQuery.toLowerCase()));
 
     if (!matchesSearch) return false;
 
     if (filterTab === 'my') {
-      // If creatorId is set, check equality; if not set, assume user's project
-      return !p.creatorId || p.creatorId === currentInstructor.id || p.creatorName === currentInstructor.name;
+      return isMyProject(p);
     } else if (filterTab === 'shared') {
-      // Created by other instructors
-      return p.creatorId && p.creatorId !== currentInstructor.id;
+      return !isMyProject(p);
     }
     return true;
   });
 
-  const myProjectsCount = projects.filter(
-    (p) => !p.creatorId || p.creatorId === currentInstructor.id || p.creatorName === currentInstructor.name
-  ).length;
-
-  const sharedProjectsCount = projects.filter(
-    (p) => p.creatorId && p.creatorId !== currentInstructor.id
-  ).length;
+  const myProjectsCount = projects.filter(isMyProject).length;
+  const sharedProjectsCount = projects.filter((p) => !isMyProject(p)).length;
 
   return (
     <div className="space-y-6 pb-16">
@@ -103,6 +114,17 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
         {/* Ownership Filter Pills (Huthy modern style) */}
         <div className="flex items-center p-1 bg-white rounded-2xl border border-[#E7E9F0] shadow-2xs">
           <button
+            onClick={() => setFilterTab('all')}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              filterTab === 'all'
+                ? 'bg-[#6C5CE7] text-white shadow-xs'
+                : 'text-[#7B8190] hover:text-[#202533]'
+            }`}
+          >
+            <FolderClock className="w-3.5 h-3.5" />
+            <span>Semua Pelatihan ({projects.length})</span>
+          </button>
+          <button
             onClick={() => setFilterTab('my')}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               filterTab === 'my'
@@ -123,16 +145,6 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           >
             <Users className="w-3.5 h-3.5" />
             <span>Dari Pengajar Lain ({sharedProjectsCount})</span>
-          </button>
-          <button
-            onClick={() => setFilterTab('all')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-              filterTab === 'all'
-                ? 'bg-[#6C5CE7] text-white shadow-xs'
-                : 'text-[#7B8190] hover:text-[#202533]'
-            }`}
-          >
-            Semua ({projects.length})
           </button>
         </div>
 

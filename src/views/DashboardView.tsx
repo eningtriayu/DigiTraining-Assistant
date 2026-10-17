@@ -112,29 +112,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="absolute right-[-40px] top-[-40px] w-80 h-80 rounded-full bg-white/10 pointer-events-none blur-2xl" />
       </div>
 
-      {/* Metric Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {/* Metric Summary Cards (Clean SaaS 3-Card Layout) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="bg-white p-6 rounded-3xl border border-[#E7E9F0] shadow-2xs hover:shadow-sm transition-all">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-[#7B8190] uppercase tracking-wider">
-              Pelatihan Saya
+              Total Riwayat Pelatihan
             </span>
             <div className="w-9 h-9 rounded-xl bg-purple-50 text-[#6C5CE7] flex items-center justify-center">
               <FolderOpen className="w-5 h-5" />
             </div>
           </div>
           <div className="text-2xl font-bold text-[#202533] tabular-nums font-mono">
-            {myProjects.length} <span className="text-xs font-normal text-[#7B8190]">dari {totalProjects} total</span>
+            {totalProjects} <span className="text-xs font-normal text-[#7B8190]">pelatihan aktif</span>
           </div>
           <p className="text-xs text-[#7B8190] mt-1">
-            Tersimpan di Cloud Server BLSDM
+            {myProjects.length} peran Anda • {Math.max(0, totalProjects - myProjects.length)} dibagikan pengajar lain
           </p>
         </div>
 
         <div className="bg-white p-6 rounded-3xl border border-[#E7E9F0] shadow-2xs hover:shadow-sm transition-all">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-[#7B8190] uppercase tracking-wider">
-              Dokumen Terbit
+              Perangkat Dokumen Terbit
             </span>
             <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#35A875] flex items-center justify-center">
               <FileText className="w-5 h-5" />
@@ -144,122 +144,26 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {totalDocuments}
           </div>
           <p className="text-xs text-[#7B8190] mt-1">
-            Silabus, rundown, materi, & 20 butir soal
+            Silabus, rundown (1 JP = 45m), materi 30/70, & evaluasi 20 butir soal
           </p>
         </div>
 
         <div className="bg-white p-6 rounded-3xl border border-[#E7E9F0] shadow-2xs hover:shadow-sm transition-all">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-[#7B8190] uppercase tracking-wider">
-              Rasio Kurikulum
+              Sinkronisasi Multi-Device
             </span>
-            <div className="w-9 h-9 rounded-xl bg-violet-50 text-[#6C5CE7] flex items-center justify-center">
-              <Zap className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-indigo-50 text-[#6C5CE7] flex items-center justify-center">
+              <Cloud className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-[#6C5CE7] tabular-nums font-mono">
-            30% : 70%
+          <div className="text-2xl font-bold text-[#35A875] flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#35A875] animate-pulse"></span>
+            <span className="text-lg font-bold text-[#202533]">Aktif Terpusat</span>
           </div>
           <p className="text-xs text-[#7B8190] mt-1">
-            30% Teori vs 70% Hands-on Praktik & Tools
+            Riwayat tersimpan permanen di cloud server BLSDM Komdigi
           </p>
-        </div>
-
-        <div className="bg-white p-6 rounded-3xl border border-[#E7E9F0] shadow-2xs hover:shadow-sm transition-all">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-[#7B8190] uppercase tracking-wider">
-              Rata-rata Durasi
-            </span>
-            <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#3B82F6] flex items-center justify-center">
-              <Clock className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-[#202533] tabular-nums font-mono">
-            {avgJP} <span className="text-sm font-normal text-[#7B8190]">JP</span>
-          </div>
-          <p className="text-xs text-[#7B8190] mt-1">
-            Standar valid: 1 JP = 45 menit
-          </p>
-        </div>
-      </div>
-
-      {/* 4 Core Module Shortcuts */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-base font-bold text-[#202533]">
-              Empat Modul Inti DigiTraining
-            </h3>
-            <p className="text-xs text-[#7B8190]">
-              Perangkat utama yang dihasilkan secara otomatis dan saling konsisten
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div
-            onClick={onCreateNew}
-            className="p-5 bg-white rounded-3xl border border-[#E7E9F0] hover:border-[#6C5CE7]/40 hover:shadow-sm transition-all duration-150 cursor-pointer group"
-          >
-            <div className="w-10 h-10 rounded-2xl bg-purple-50 text-[#6C5CE7] flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-              <FileText className="w-5 h-5" />
-            </div>
-            <h4 className="text-sm font-bold text-[#202533] mb-1">Modul A — Silabus</h4>
-            <p className="text-xs text-[#7B8190] leading-relaxed mb-3">
-              Format silabus standar: tujuan, kompetensi, materi pokok, dan sistem evaluasi kelulusan.
-            </p>
-            <span className="text-xs font-semibold text-[#6C5CE7] flex items-center gap-1">
-              Mulai Susun <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-            </span>
-          </div>
-
-          <div
-            onClick={onCreateNew}
-            className="p-5 bg-white rounded-3xl border border-[#E7E9F0] hover:border-[#6C5CE7]/40 hover:shadow-sm transition-all duration-150 cursor-pointer group"
-          >
-            <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-[#5847D6] flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-              <Calendar className="w-5 h-5" />
-            </div>
-            <h4 className="text-sm font-bold text-[#202533] mb-1">Modul B — Rundown</h4>
-            <p className="text-xs text-[#7B8190] leading-relaxed mb-3">
-              Rincian jadwal sinkronus & asinkronus dengan validasi 1 JP = 45 menit & pemisahan istirahat.
-            </p>
-            <span className="text-xs font-semibold text-[#6C5CE7] flex items-center gap-1">
-              Mulai Susun <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-            </span>
-          </div>
-
-          <div
-            onClick={onCreateNew}
-            className="p-5 bg-white rounded-3xl border border-[#E7E9F0] hover:border-[#6C5CE7]/40 hover:shadow-sm transition-all duration-150 cursor-pointer group"
-          >
-            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-[#35A875] flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-              <Layers className="w-5 h-5" />
-            </div>
-            <h4 className="text-sm font-bold text-[#202533] mb-1">Modul C — Materi & Slide</h4>
-            <p className="text-xs text-[#7B8190] leading-relaxed mb-3">
-              30% Teori, 70% Hands-on Praktik & Tools nyata, serta bahan tayang slide interaktif.
-            </p>
-            <span className="text-xs font-semibold text-[#6C5CE7] flex items-center gap-1">
-              Mulai Susun <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-            </span>
-          </div>
-
-          <div
-            onClick={onCreateNew}
-            className="p-5 bg-white rounded-3xl border border-[#E7E9F0] hover:border-[#6C5CE7]/40 hover:shadow-sm transition-all duration-150 cursor-pointer group"
-          >
-            <div className="w-10 h-10 rounded-2xl bg-amber-50 text-[#E7A23B] flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-            <h4 className="text-sm font-bold text-[#202533] mb-1">Modul D — Evaluasi 20 Soal</h4>
-            <p className="text-xs text-[#7B8190] leading-relaxed mb-3">
-              Tepat 20 butir Pre-test dan 20 butir Post-test, 4 opsi (A-D), kunci jawaban, dan pembahasan.
-            </p>
-            <span className="text-xs font-semibold text-[#6C5CE7] flex items-center gap-1">
-              Mulai Susun <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-            </span>
-          </div>
         </div>
       </div>
 

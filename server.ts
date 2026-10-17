@@ -10,6 +10,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
+import { SEED_PROJECTS } from './src/data/seedProjects';
 
 dotenv.config();
 
@@ -34,40 +35,48 @@ if (!fs.existsSync(DATA_DIR)) {
 // Initial default BLSDM Komdigi Surabaya instructors
 const DEFAULT_INSTRUCTORS = [
   {
-    id: 'inst-budi',
-    name: 'Budi Santoso, S.Kom., M.T.',
-    nip: '198503122010121002',
-    email: 'budi.santoso@komdigi.go.id',
+    id: 'inst-01',
+    name: 'Dr. Aris Sudarmono, M.Kom',
+    nip: '198205142006041002',
+    email: 'aris.sudarmono@komdigi.go.id',
     role: 'Instruktur BLSDM',
-    division: 'Kecerdasan Artifisial & Konten Digital',
+    division: 'Subtim Transformasi Digital & Kecerdasan Artifisial',
     avatarColor: '#6C5CE7',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    specialties: ['AI Ethics & Governance', 'Prompt Engineering', 'SKKNI AI & Data Science'],
   },
   {
-    id: 'inst-siti',
-    name: 'Dra. Siti Rahmawati, M.Sc.',
-    nip: '197805152003122001',
-    email: 'siti.rahmawati@komdigi.go.id',
+    id: 'inst-02',
+    name: 'Ir. Maya Prasasti, M.T.',
+    nip: '198711092010122001',
+    email: 'maya.prasasti@komdigi.go.id',
     role: 'Instruktur Ahli / Senior',
-    division: 'Transformasi Tata Kelola Digital & SPBE',
+    division: 'Subtim Keamanan Informasi & Infrastruktur Cloud',
     avatarColor: '#35A875',
+    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    specialties: ['Cyber Security Awareness', 'ISO/IEC 27001', 'Cloud Architecture'],
   },
   {
-    id: 'inst-dimas',
-    name: 'Dimas Wicaksono, M.Ds.',
-    nip: '199108242018011003',
-    email: 'dimas.wicaksono@komdigi.go.id',
-    role: 'Fasilitator Praktisi',
-    division: 'Komunikasi Visual & Multimedia Publik',
-    avatarColor: '#E7A23B',
-  },
-  {
-    id: 'inst-hendra',
-    name: 'Dr. Hendra Prasetyo, M.Eng.',
-    nip: '198204192008121001',
-    email: 'hendra.prasetyo@komdigi.go.id',
+    id: 'inst-03',
+    name: 'Rahmat Hidayat, S.Kom, M.Eng',
+    nip: '199003252015031004',
+    email: 'rahmat.hidayat@komdigi.go.id',
     role: 'Koordinator Kurikulum & Mutu',
-    division: 'Penyelenggaraan Pelatihan & Penjaminan Mutu',
+    division: 'Bidang Penjaminan Mutu & Sertifikasi Diklat',
     avatarColor: '#0984E3',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    specialties: ['Penyusunan Kurikulum Diklat', 'Standar JP & Silabus', 'Evaluasi 20 Butir Soal'],
+  },
+  {
+    id: 'inst-04',
+    name: 'Dewi Sartika, S.T., M.Kom',
+    nip: '199308192018022003',
+    email: 'dewi.sartika@komdigi.go.id',
+    role: 'Fasilitator Praktisi',
+    division: 'Subtim Data Science & Big Data Analytics',
+    avatarColor: '#E7A23B',
+    avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
+    specialties: ['Data Analysis & Visualization', 'Python Hands-on Lab', 'Machine Learning Praktis'],
   },
 ];
 
@@ -76,7 +85,10 @@ function getStoredInstructors(): any[] {
   try {
     if (fs.existsSync(INSTRUCTORS_FILE)) {
       const data = fs.readFileSync(INSTRUCTORS_FILE, 'utf-8');
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
     }
   } catch (err) {
     console.error('Error reading instructors file:', err);
@@ -98,12 +110,17 @@ function getStoredProjects(): any[] {
   try {
     if (fs.existsSync(PROJECTS_FILE)) {
       const data = fs.readFileSync(PROJECTS_FILE, 'utf-8');
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
     }
   } catch (err) {
     console.error('Error reading projects file:', err);
   }
-  return [];
+  // Initialize with persistent seed projects so projects are NEVER 0 on any browser/device
+  fs.writeFileSync(PROJECTS_FILE, JSON.stringify(SEED_PROJECTS, null, 2), 'utf-8');
+  return SEED_PROJECTS;
 }
 
 function saveStoredProjects(projects: any[]): void {
@@ -183,6 +200,55 @@ app.post('/api/projects', (req: Request, res: Response) => {
   return res.json({ success: true, project: updatedProject, message: 'Tersinkronisasi ke Cloud Server BLSDM.' });
 });
 
+app.put('/api/projects/:id', (req: Request, res: Response) => {
+  const project = req.body;
+  const { id } = req.params;
+  if (!project) {
+    return res.status(400).json({ error: 'Data proyek tidak lengkap.' });
+  }
+
+  const projects = getStoredProjects();
+  const existingIdx = projects.findIndex((p) => p.id === id || p.id === project.id);
+
+  const updatedProject = {
+    ...project,
+    id: project.id || id,
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (existingIdx >= 0) {
+    projects[existingIdx] = updatedProject;
+  } else {
+    projects.unshift(updatedProject);
+  }
+
+  saveStoredProjects(projects);
+  return res.json({ success: true, project: updatedProject, message: 'Tersimpan ke Cloud Server BLSDM.' });
+});
+
+app.post('/api/projects/sync-all', (req: Request, res: Response) => {
+  const { projects: incomingProjects } = req.body;
+  const currentProjects = getStoredProjects();
+  if (Array.isArray(incomingProjects) && incomingProjects.length > 0) {
+    const map = new Map<string, any>();
+    for (const p of currentProjects) {
+      if (p && p.id) map.set(p.id, p);
+    }
+    for (const p of incomingProjects) {
+      if (p && p.id) {
+        const existing = map.get(p.id);
+        if (!existing || new Date(p.updatedAt || 0) >= new Date(existing.updatedAt || 0)) {
+          map.set(p.id, p);
+        }
+      }
+    }
+    const merged = Array.from(map.values());
+    saveStoredProjects(merged);
+    return res.json({ success: true, projects: merged, count: merged.length });
+  }
+  return res.json({ success: true, projects: currentProjects, count: currentProjects.length });
+});
+
 app.delete('/api/projects/:id', (req: Request, res: Response) => {
   const { id } = req.params;
   const projects = getStoredProjects();
@@ -239,27 +305,39 @@ You are DigiTraining Assistant, the official AI-powered training preparation ass
 
 PRIMARY RULES & INSTRUCTIONS:
 1. Always generate all documents in formal, clear, and structured Indonesian (Bahasa Indonesia baku kedinasan).
-2. DO NOT use any mention or diction of "DTS", "Digital Talent Scholarship", or its academies ("GTA", "Government Transformation Academy", "TA", "DEA", etc.). The institution is strictly "BLSDM Komdigi Surabaya" or "Kementerian Komunikasi dan Digital Republik Indonesia".
+2. DO NOT use the acronym "DTS" or academy subdivisions ("GTA", "TA", "DEA"). The hosting institution is strictly "BLSDM Komdigi Surabaya" or "Kementerian Komunikasi dan Digital Republik Indonesia". You SHOULD, however, utilize the rich curriculum standards, syllabi, practical lab modules, and technical competencies developed by Digitalent Komdigi (digitalent.kominfo.go.id / bpsdm.komdigi.go.id) as prime authoritative references!
 3. DURATION RULES: 1 JP = 45 minutes. Never treat 1 JP as 60 minutes.
 4. Breaks and lunch (Ishoma) DO NOT count towards learning JP.
-5. PRE-TEST & POST-TEST MUST BE 100% SUBSTANTIVE TO THE TRAINING TOPIC/CONTENT ONLY:
+5. PROPORTION RULE: 30% Theory vs 70% Practical Tools, Tutorials & Case Studies:
+   - Theory (30%): Dense, conceptual, grounded in official Indonesian regulations (SE Menkominfo No 9/2023, UU PDP No 27/2022, Perpres SPBE).
+   - Practical (70%): Highly actionable, naming real-world software, tools, platforms, step-by-step procedures, terminal commands / prompts, and public sector case studies.
+6. AUTHORITATIVE DATA SOURCES & REFERENCES:
+   - Digitalent Komdigi (digitalent.kominfo.go.id / bpsdm.komdigi.go.id): Digital vocational training syllabi, curriculum competencies, hands-on lab modules.
+   - Standar Kompetensi Kerja Nasional Indonesia (SKKNI - skkni.kemnaker.go.id): National work competency standards in AI, Data Science, Cyber Security, Software Engineering, and Multimedia.
+   - JDIH Komdigi (jdih.kominfo.go.id): SE Menkominfo No. 9 Tahun 2023 tentang Etika AI, UU No. 27 Tahun 2022 tentang PDP, Perpres SPBE.
+   - BSSN (govcsirt.bssn.go.id / bssn.go.id): Incident handling, cybersecurity frameworks, metadata sanitation.
+   - Google AI Studio & Google Colab (ai.google.dev / colab.research.google.com): Interactive notebooks, Gemini API integrations, Prompt Engineering.
+   - Hugging Face (huggingface.co): Open-source AI models, spaces, interactive demos, pipelines.
+   - ISO/IEC Standards (iso.org): ISO/IEC 27001 (Information Security) and ISO/IEC 42001 (AI Management System).
+   - W3C & OWASP (owasp.org): Web standards, accessibility, and security best practices.
+7. PRE-TEST & POST-TEST MUST BE 100% SUBSTANTIVE TO THE TRAINING TOPIC/CONTENT ONLY:
    - Each test must contain EXACTLY 20 MULTIPLE-CHOICE QUESTIONS (numbers 1 to 20).
    - NEVER make questions about course logistics, training technicalities, attendance percentage rules, JP definitions (e.g. 1 JP = 45 menit), grading percentage weights (e.g. 30% post-test), certificate requirements, or course logistics.
    - All questions must evaluate domain knowledge, practical concepts, tools, ethics, legal compliance (e.g., SE Menkominfo No 9/2023, UU PDP), fact-checking, and analytical problem-solving taught in the material.
    - Each question must have options A, B, C, D, exactly one correct answer, pedagogical explanation, topic, and mapped learning objective.
-6. Realism and Source Traceability: Do not fabricate fake citations, nonexistent URLs, or fake research statistics. Ground materials on official standards, circular letters (e.g. SE Menkominfo RI No 9 Tahun 2023 tentang Etika AI), and established digital competencies.
-7. Always return output strictly as valid JSON adhering to the requested schema.
+8. Realism and Source Traceability: Do not fabricate fake citations, nonexistent URLs, or fake research statistics. Ground materials on official standards, circular letters, and established digital competencies.
+9. Always return output strictly as valid JSON adhering to the requested schema.
 `;
 
 // Helper to sanitize JSON response from Gemini
 function cleanJsonResponse(raw: string): any {
   let cleaned = raw.trim();
-  if (cleaned.startsWith('\`\`\`json')) {
+  if (cleaned.startsWith('```json')) {
     cleaned = cleaned.substring(7);
-  } else if (cleaned.startsWith('\`\`\`')) {
+  } else if (cleaned.startsWith('```')) {
     cleaned = cleaned.substring(3);
   }
-  if (cleaned.endsWith('\`\`\`')) {
+  if (cleaned.endsWith('```')) {
     cleaned = cleaned.substring(0, cleaned.length - 3);
   }
   cleaned = cleaned.trim();
@@ -369,15 +447,23 @@ Generate comprehensive training documents for:
 - Referensi / Catatan Tambahan: ${input.referenceText || '-'}
 - Modul yang diminta: ${module} (Pilihan: ${JSON.stringify(input.selectedOutputs)})
 
-ATURAN PROPORSI WAJIB MATERI (30% TEORI & 70% PRAKTIK & TOOLS):
+SUMBER DATA RUJUKAN UTAMA (TERPERCAYA & KAYA TOOLS PRAKTIK):
+1. Digitalent Komdigi (digitalent.kominfo.go.id / bpsdm.komdigi.go.id): Silabus vokasi digital, kurikulum pelatihan teknis, modul lab terapan.
+2. Standar Kompetensi Kerja Nasional Indonesia (SKKNI - skkni.kemnaker.go.id): Unit kompetensi kerja nyata, demonstrasi unjuk kerja.
+3. JDIH Kominfo/Komdigi (jdih.kominfo.go.id): SE Menkominfo No. 9/2023 (Etika AI), UU No. 27/2022 (UU PDP).
+4. Badan Siber dan Sandi Negara (BSSN - govcsirt.bssn.go.id / bssn.go.id): Penanganan insiden siber & keamanan data.
+5. Google AI Studio & Google Colab (ai.google.dev / colab.research.google.com): Hands-on labs & coding environments.
+6. Hugging Face (huggingface.co): AI tools, open-source models, interactive spaces.
+7. ISO/IEC 27001 & ISO/IEC 42001 (iso.org): Standar keamanan informasi dan tata kelola AI.
+
+ATURAN PROPORSI WAJIB MATERI (30% TEORI & 70% PRAKTIK, TOOLS & STUDI KASUS):
 - MATERI LENGKAP & SLIDE PRESENTASI WAJIB MEMENUHI PROPORSI:
-  1. 30% TEORI KONSEPTUAL: Dasar hukum (SE Menkominfo No 9/2023, SKKNI), konsep dasar, prinsip pokok secara padat dan tidak bertele-tele.
+  1. 30% TEORI KONSEPTUAL: Dasar hukum, regulasi (SE Menkominfo No 9/2023, UU PDP), konsep dasar secara padat, jelas, tidak bertele-tele.
   2. 70% TUTORIAL PRAKTIK, TOOLS NYATA & STUDI KASUS:
-     - Panduan langkah demi langkah (Step-by-step) eksplisit yang langsung dipraktikkan peserta pada perangkat masing-masing.
-     - Rekomendasi tools konkret (contoh: Google Colab, VS Code, HuggingFace, Cursor, Ollama, Postman, Wireshark, Canva Pro, Google AI Studio, dsb yang relevan dengan topik).
-     - Prompt template teruji / sintaks kerja / konfigurasi nyata.
-     - Studi kasus riil instansi pemerintah, BUMN, atau industri di Indonesia.
-     - Tugas latihan mandiri terstruktur.
+     - Wajib menyebutkan tools spesifik yang relevan (seperti: Google Colab, HuggingFace Spaces, Ollama, VS Code, Canva for Government, ExifTool, Wireshark, Postman, FastAPI, GitHub, Gemini API, dsb).
+     - Wajib menyertakan minimal 4-5 "practiceSteps" yang konkret, sistematis, dan langsung bisa dijalankan oleh peserta pelatihan di laptop masing-masing.
+     - Sertakan contoh sintaks kode, prompt template siap pakai, atau konfigurasi nyata.
+     - Sertakan studi kasus terapan instansi pemerintah, BUMN, atau layanan publik di Indonesia.
 - Pada rancangan slide: 30% slide konsep/pengantar, 70% slide demonstrasi tools, alur kerja praktik, dan lab hands-on instruktur.
 
 ATURAN SUMBER DATA KHUSUS EVALUASI (PRE-TEST & POST-TEST):
@@ -496,6 +582,23 @@ Hasilkan JSON dengan struktur berikut:
     "references": [
       {
         "id": "ref-1",
+        "title": "Kurikulum & Silabus Pelatihan Digital Terapan",
+        "publisherOrAuthor": "Digitalent Komdigi (BPSDM Komdigi)",
+        "yearOrDate": "2024",
+        "url": "https://digitalent.kominfo.go.id",
+        "domainName": "digitalent.kominfo.go.id",
+        "category": "Panduan & SOP Resmi Pemerintah",
+        "credibilityLevel": "Tingkat 1 (Regulasi/Standar Resmi Negara)",
+        "verificationStatus": "Terverifikasi",
+        "mappedChapters": ["Bab I: Konsep Dasar dan Relevansi"],
+        "citationCode": "[REF-DIGITALENT-2024]",
+        "documentType": "Silabus & Modul Vokasi Digital",
+        "verifiedBy": "Tim Kurikulum BLSDM Komdigi Surabaya",
+        "directExcerptOrSummary": "Standar kurikulum pelatihan vokasi digital aparatur dan masyarakat umum berbasis kompetensi teknis terapan.",
+        "notes": "Rujukan utama pelatihan digital Komdigi"
+      },
+      {
+        "id": "ref-2",
         "title": "Surat Edaran Menkominfo RI No 9 Tahun 2023 tentang Etika Kecerdasan Artifisial",
         "publisherOrAuthor": "Kementerian Komunikasi dan Informatika RI",
         "yearOrDate": "2023",
@@ -548,7 +651,7 @@ Hasilkan JSON dengan struktur berikut:
     "postTest": [
       {
         "number": 1,
-        "question": "Pertanyaan post-test butir 1 tentang materi pokok?",
+        "question": "Pertanyaan post-test nomor 1 tentang materi pokok?",
         "options": {
           "A": "Pilihan A",
           "B": "Pilihan B",
@@ -575,7 +678,7 @@ CATATAN WAJIB:
     }
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,

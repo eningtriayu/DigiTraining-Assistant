@@ -1712,51 +1712,13 @@ export const ProjectWorkspaceView: React.FC<ProjectWorkspaceViewProps> = ({
             </div>
           </div>
 
-          {/* Trust Audit Stat Cards (Assurance of authenticity) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-4 rounded-2xl bg-[#F5F6FA] border border-[#E7E9F0]">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#7B8190] uppercase tracking-wider mb-1">
-                <ShieldCheck className="w-4 h-4 text-[#35A875]" />
-                <span>Status Validasi</span>
-              </div>
-              <div className="text-xl font-bold text-[#202533]">100% Otentik</div>
-              <p className="text-[11px] text-[#7B8190] mt-0.5">Bebas halusinasi & fabrikasi</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-[#F5F6FA] border border-[#E7E9F0]">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#7B8190] uppercase tracking-wider mb-1">
-                <Globe className="w-4 h-4 text-[#6C5CE7]" />
-                <span>Tautan Portal</span>
-              </div>
-              <div className="text-xl font-bold text-[#6C5CE7]">URL Langsung</div>
-              <p className="text-[11px] text-[#7B8190] mt-0.5">Dapat diklik ke sumber asli</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-[#F5F6FA] border border-[#E7E9F0]">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#7B8190] uppercase tracking-wider mb-1">
-                <Award className="w-4 h-4 text-amber-500" />
-                <span>Kredibilitas</span>
-              </div>
-              <div className="text-xl font-bold text-[#202533]">Tingkat A+</div>
-              <p className="text-[11px] text-[#7B8190] mt-0.5">JDIH, SKKNI, BSSN, UNESCO, ISO</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-[#F5F6FA] border border-[#E7E9F0]">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#7B8190] uppercase tracking-wider mb-1">
-                <BookOpen className="w-4 h-4 text-blue-500" />
-                <span>Keterhubungan</span>
-              </div>
-              <div className="text-xl font-bold text-[#202533]">Terpetakan</div>
-              <p className="text-[11px] text-[#7B8190] mt-0.5">Terkait ke Bab & Soal Ujian</p>
-            </div>
-          </div>
-
           {/* Search, Category Filter & View Mode Toggle */}
           <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 pt-2">
             {/* Category Filter Pills */}
             <div className="flex flex-wrap items-center gap-1.5">
               {[
                 'Semua',
+                'Digitalent Komdigi & Praktik',
                 'Regulasi & Kebijakan Nasional',
                 'Standar Kompetensi (SKKNI)',
                 'Standar Internasional',
@@ -1765,7 +1727,19 @@ export const ProjectWorkspaceView: React.FC<ProjectWorkspaceViewProps> = ({
                 const count =
                   cat === 'Semua'
                     ? currentProject.material!.references.length
-                    : currentProject.material!.references.filter((r) => (r.category || '').includes(cat) || (r.documentType || '').includes(cat)).length;
+                    : currentProject.material!.references.filter((r) => {
+                        if (cat === 'Digitalent Komdigi & Praktik') {
+                          return (
+                            (r.publisherOrAuthor || '').toLowerCase().includes('komdigi') ||
+                            (r.publisherOrAuthor || '').toLowerCase().includes('kominfo') ||
+                            (r.publisherOrAuthor || '').toLowerCase().includes('digitalent') ||
+                            (r.title || '').toLowerCase().includes('digitalent') ||
+                            (r.url || '').toLowerCase().includes('digitalent') ||
+                            (r.category || '').toLowerCase().includes('praktik')
+                          );
+                        }
+                        return (r.category || '').includes(cat) || (r.documentType || '').includes(cat);
+                      }).length;
                 const isSelected = refCategory === cat;
                 return (
                   <button
@@ -1830,6 +1804,16 @@ export const ProjectWorkspaceView: React.FC<ProjectWorkspaceViewProps> = ({
               if (!matchesSearch) return false;
 
               if (refCategory === 'Semua') return true;
+              if (refCategory === 'Digitalent Komdigi & Praktik') {
+                return (
+                  (r.publisherOrAuthor || '').toLowerCase().includes('komdigi') ||
+                  (r.publisherOrAuthor || '').toLowerCase().includes('kominfo') ||
+                  (r.publisherOrAuthor || '').toLowerCase().includes('digitalent') ||
+                  (r.title || '').toLowerCase().includes('digitalent') ||
+                  (r.url || '').toLowerCase().includes('digitalent') ||
+                  (r.category || '').toLowerCase().includes('praktik')
+                );
+              }
               return (r.category || '').includes(refCategory) || (r.documentType || '').includes(refCategory);
             });
 

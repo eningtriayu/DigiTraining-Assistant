@@ -69,33 +69,64 @@ export function saveActiveInstructor(instructor: InstructorProfile) {
   }
 }
 
-// 4. Cloud Projects API (Multi-device persistence)
+// 4. Cloud Projects API (Multi-Device Persistence & Auto-Sync)
+export async function syncAllProjectsToCloud(projects: TrainingProject[]): Promise<TrainingProject[]> {
+  try {
+    const res = await fetch('/api/projects/sync-all', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ projects }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.projects)) {
+        try {
+          localStorage.setItem(LOCAL_PROJECTS_BACKUP_KEY, JSON.stringify(data.projects));
+        } catch (_) {}
+        return data.projects;
+      }
+    }
+  } catch (err) {
+    console.warn('Gagal batch sync ke server:', err);
+  }
+  return projects;
+}
+
 export async function fetchCloudProjects(): Promise<{ projects: TrainingProject[]; isCloudConnected: boolean }> {
+  let localProjects: TrainingProject[] = [];
+  try {
+    const local = localStorage.getItem(LOCAL_PROJECTS_BACKUP_KEY);
+    if (local) {
+      localProjects = JSON.parse(local);
+    }
+  } catch (_) {}
+
   try {
     const res = await fetch('/api/projects');
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data.projects)) {
-        // Cache backup locally
+      let serverProjects: TrainingProject[] = Array.isArray(data.projects) ? data.projects : [];
+
+      // If local storage has any projects not yet on the server, auto-sync them up!
+      const serverIds = new Set(serverProjects.map((p) => p.id));
+      const unsyncedLocals = localProjects.filter((p) => p && p.id && !serverIds.has(p.id));
+
+      if (unsyncedLocals.length > 0) {
+        serverProjects = await syncAllProjectsToCloud([...serverProjects, ...unsyncedLocals]);
+      } else {
         try {
-          localStorage.setItem(LOCAL_PROJECTS_BACKUP_KEY, JSON.stringify(data.projects));
+          localStorage.setItem(LOCAL_PROJECTS_BACKUP_KEY, JSON.stringify(serverProjects));
         } catch (_) {}
-        return { projects: data.projects, isCloudConnected: true };
       }
+
+      return { projects: serverProjects, isCloudConnected: true };
     }
   } catch (err) {
     console.warn('Server offline atau tidak terjangkau, menggunakan penyimpanan offline lokal:', err);
   }
 
   // Fallback to local storage
-  try {
-    const local = localStorage.getItem(LOCAL_PROJECTS_BACKUP_KEY);
-    if (local) {
-      return { projects: JSON.parse(local), isCloudConnected: false };
-    }
-  } catch (_) {}
-
-  return { projects: [], isCloudConnected: false };
+  return { projects: localProjects, isCloudConnected: false };
 }
 
 export async function saveCloudProject(project: TrainingProject): Promise<boolean> {
