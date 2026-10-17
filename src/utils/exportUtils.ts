@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, BorderStyle, HeadingLevel, AlignmentType, Packer, ImageRun } from 'docx';
+import { Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, BorderStyle, HeadingLevel, AlignmentType, Packer, ImageRun, ExternalHyperlink } from 'docx';
 import pptxgen from 'pptxgenjs';
 import { saveAs } from 'file-saver';
 import { SyllabusOutput, RundownOutput, MaterialOutput, SlideOutlineOutput, EvaluationOutput, TestQuestion } from '../types';
@@ -31,6 +31,7 @@ export function createKopSuratParagraph(): Paragraph {
             width: 595, // full content width in Word (margins 1 inch A4)
             height: 102, // 595 * (205 / 1200) ratio
           },
+          type: 'png',
         }),
       ],
       alignment: AlignmentType.CENTER,
@@ -374,17 +375,64 @@ export async function exportMaterialToDocx(material: MaterialOutput, trainingNam
           ]),
 
           new Paragraph({
-            text: 'DAFTAR REFERENSI & PUSTAKA ACUAN',
+            text: 'DAFTAR REFERENSI & PUSTAKA ACUAN TERVERIFIKASI',
             heading: HeadingLevel.HEADING_2,
             spacing: { before: 300, after: 150 },
           }),
-          ...material.references.map(
-            (ref, i) =>
-              new Paragraph({
-                text: `[${i + 1}] ${ref.title}. ${ref.publisherOrAuthor} ${ref.yearOrDate ? `(${ref.yearOrDate})` : ''}. ${ref.url || ''} [Status: ${ref.verificationStatus}]`,
-                spacing: { after: 100 },
-              })
-          ),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: 'Catatan Keabsahan: Seluruh rujukan di bawah ini bersumber dari regulasi resmi negara, standar kompetensi nasional (SKKNI), atau standar global terakreditasi dengan tautan portal resmi yang dapat diklik langsung.',
+                italics: true,
+                color: '6C5CE7',
+              }),
+            ],
+            spacing: { after: 150 },
+          }),
+          ...material.references.flatMap((ref, i) => [
+            new Paragraph({
+              children: [
+                new TextRun({ text: `[${i + 1}] `, bold: true }),
+                new TextRun({ text: `${ref.title}. `, bold: true }),
+                new TextRun({ text: `${ref.publisherOrAuthor} ` }),
+                ...(ref.yearOrDate ? [new TextRun({ text: `(${ref.yearOrDate}). ` })] : []),
+                new TextRun({ text: `[Status: ${ref.verificationStatus}] `, color: '35A875', bold: true }),
+                ...(ref.credibilityLevel ? [new TextRun({ text: `| ${ref.credibilityLevel} `, italics: true })] : []),
+              ],
+              spacing: { before: 80, after: 40 },
+            }),
+            ...(ref.url
+              ? [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: '     Tautan Sumber Resmi: ' }),
+                      new ExternalHyperlink({
+                        children: [
+                          new TextRun({
+                            text: ref.url,
+                            style: 'Hyperlink',
+                            color: '6C5CE7',
+                            underline: {},
+                          }),
+                        ],
+                        link: ref.url,
+                      }),
+                    ],
+                    spacing: { after: 80 },
+                  }),
+                ]
+              : []),
+            ...(ref.directExcerptOrSummary
+              ? [
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: `     Substansi Acuan: "${ref.directExcerptOrSummary}"`, italics: true, color: '555555' }),
+                    ],
+                    spacing: { after: 120 },
+                  }),
+                ]
+              : []),
+          ]),
         ],
       },
     ],

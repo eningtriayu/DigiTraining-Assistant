@@ -12,7 +12,11 @@ import {
   Settings,
   Sparkles,
   GraduationCap,
+  Cloud,
+  UserCheck,
+  ChevronRight,
 } from 'lucide-react';
+import { InstructorProfile } from '../types';
 
 export type ActiveTab = 'dashboard' | 'create' | 'history' | 'templates' | 'settings' | 'workspace';
 
@@ -21,6 +25,9 @@ interface SidebarProps {
   onNavigate: (tab: ActiveTab) => void;
   activeProjectName?: string;
   projectCount: number;
+  currentInstructor: InstructorProfile;
+  onOpenInstructorModal: () => void;
+  isCloudConnected: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -28,6 +35,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onNavigate,
   activeProjectName,
   projectCount,
+  currentInstructor,
+  onOpenInstructorModal,
+  isCloudConnected,
 }) => {
   const menuItems: Array<{ id: ActiveTab; label: string; icon: React.ReactNode; badge?: string | number }> = [
     {
@@ -60,18 +70,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside className="w-64 bg-white border-r border-[#E7E9F0] flex flex-col justify-between shrink-0 h-screen sticky top-0 z-30 select-none">
-      <div>
+      <div className="flex flex-col flex-1 overflow-y-auto">
         {/* Brand Lockup */}
         <div className="p-6 border-b border-[#E7E9F0]/80">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#5847D6] to-[#6C5CE7] flex items-center justify-center text-white shadow-sm shadow-[#6C5CE7]/30">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#5847D6] to-[#6C5CE7] flex items-center justify-center text-white shadow-sm shadow-[#6C5CE7]/30">
               <GraduationCap className="w-6 h-6" />
             </div>
             <div>
               <div className="font-bold text-base text-[#202533] leading-tight tracking-tight">
                 DigiTraining
               </div>
-              <div className="text-xs text-[#7B8190] font-medium">
+              <div className="text-[11px] text-[#7B8190] font-medium">
                 BLSDM Komdigi Surabaya
               </div>
             </div>
@@ -89,7 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all duration-150 cursor-pointer ${
                   isActive
                     ? 'bg-[#6C5CE7]/10 text-[#6C5CE7] font-semibold'
                     : 'text-[#4A5568] hover:bg-[#F5F6FA] hover:text-[#202533]'
@@ -120,7 +130,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Active Workspace Link if available */}
         {activeProjectName && (
           <div className="px-3 pt-2">
-            <div className="p-3 bg-gradient-to-br from-[#F5F6FA] to-purple-50/50 rounded-xl border border-[#6C5CE7]/20">
+            <div className="p-3 bg-gradient-to-br from-[#F5F6FA] to-purple-50/50 rounded-2xl border border-[#6C5CE7]/20">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-[11px] font-semibold text-[#6C5CE7] uppercase tracking-wider flex items-center gap-1">
                   <Sparkles className="w-3 h-3" /> Proyek Aktif
@@ -132,9 +142,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
               <button
                 onClick={() => onNavigate('workspace')}
-                className={`w-full py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                className={`w-full py-1.5 text-xs font-medium rounded-xl transition-colors cursor-pointer ${
                   currentTab === 'workspace'
-                    ? 'bg-[#6C5CE7] text-white'
+                    ? 'bg-[#6C5CE7] text-white shadow-xs'
                     : 'bg-white text-[#6C5CE7] border border-[#6C5CE7]/30 hover:bg-[#6C5CE7] hover:text-white'
                 }`}
               >
@@ -145,15 +155,41 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
       </div>
 
-      {/* Footer Info */}
-      <div className="p-4 border-t border-[#E7E9F0] text-xs text-[#7B8190]">
-        <div className="flex items-center justify-between mb-1">
-          <span className="font-medium text-[#202533]">Standar JP</span>
-          <span className="font-mono text-[11px] text-[#6C5CE7] font-semibold">1 JP = 45 Menit</span>
+      {/* Instructor Account Card at Bottom (SaaS Card) */}
+      <div className="p-3 border-t border-[#E7E9F0] bg-white">
+        <div
+          onClick={onOpenInstructorModal}
+          className="p-3 rounded-2xl bg-[#F5F6FA] hover:bg-purple-50/60 border border-[#E7E9F0] hover:border-[#6C5CE7]/40 transition-all cursor-pointer group"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold text-[#6C5CE7]">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#35A875] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#35A875]"></span>
+              </span>
+              <span>{isCloudConnected ? 'Cloud Synced' : 'Multi-device'}</span>
+            </div>
+            <span className="text-[10px] text-[#7B8190] group-hover:text-[#6C5CE7] flex items-center">
+              Ganti <ChevronRight className="w-3 h-3" />
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <img
+              src={currentInstructor.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(currentInstructor.name)}`}
+              alt={currentInstructor.name}
+              className="w-8 h-8 rounded-xl object-cover border border-[#E7E9F0] shadow-2xs"
+            />
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-bold text-[#202533] truncate group-hover:text-[#6C5CE7] transition-colors">
+                {currentInstructor.name}
+              </div>
+              <div className="text-[10px] text-[#7B8190] truncate font-mono">
+                {currentInstructor.role}
+              </div>
+            </div>
+          </div>
         </div>
-        <p className="text-[11px] leading-relaxed text-[#7B8190]">
-          Balai Pengembangan SDM dan Penelitian Komunikasi & Digital Surabaya
-        </p>
       </div>
     </aside>
   );

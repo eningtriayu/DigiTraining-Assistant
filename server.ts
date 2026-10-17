@@ -6,6 +6,7 @@
 import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
@@ -19,6 +20,209 @@ const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 app.use(express.json({ limit: '15mb' }));
+
+// Persistent Cloud Storage paths
+const DATA_DIR = path.resolve(__dirname, 'server_data');
+const PROJECTS_FILE = path.join(DATA_DIR, 'projects.json');
+const INSTRUCTORS_FILE = path.join(DATA_DIR, 'instructors.json');
+
+// Ensure storage directory exists
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+// Initial default BLSDM Komdigi Surabaya instructors
+const DEFAULT_INSTRUCTORS = [
+  {
+    id: 'inst-budi',
+    name: 'Budi Santoso, S.Kom., M.T.',
+    nip: '198503122010121002',
+    email: 'budi.santoso@komdigi.go.id',
+    role: 'Instruktur BLSDM',
+    division: 'Kecerdasan Artifisial & Konten Digital',
+    avatarColor: '#6C5CE7',
+  },
+  {
+    id: 'inst-siti',
+    name: 'Dra. Siti Rahmawati, M.Sc.',
+    nip: '197805152003122001',
+    email: 'siti.rahmawati@komdigi.go.id',
+    role: 'Instruktur Ahli / Senior',
+    division: 'Transformasi Tata Kelola Digital & SPBE',
+    avatarColor: '#35A875',
+  },
+  {
+    id: 'inst-dimas',
+    name: 'Dimas Wicaksono, M.Ds.',
+    nip: '199108242018011003',
+    email: 'dimas.wicaksono@komdigi.go.id',
+    role: 'Fasilitator Praktisi',
+    division: 'Komunikasi Visual & Multimedia Publik',
+    avatarColor: '#E7A23B',
+  },
+  {
+    id: 'inst-hendra',
+    name: 'Dr. Hendra Prasetyo, M.Eng.',
+    nip: '198204192008121001',
+    email: 'hendra.prasetyo@komdigi.go.id',
+    role: 'Koordinator Kurikulum & Mutu',
+    division: 'Penyelenggaraan Pelatihan & Penjaminan Mutu',
+    avatarColor: '#0984E3',
+  },
+];
+
+// Helper functions for cloud persistence
+function getStoredInstructors(): any[] {
+  try {
+    if (fs.existsSync(INSTRUCTORS_FILE)) {
+      const data = fs.readFileSync(INSTRUCTORS_FILE, 'utf-8');
+      return JSON.parse(data);
+    }
+  } catch (err) {
+    console.error('Error reading instructors file:', err);
+  }
+  // Initialize with defaults if empty
+  fs.writeFileSync(INSTRUCTORS_FILE, JSON.stringify(DEFAULT_INSTRUCTORS, null, 2), 'utf-8');
+  return DEFAULT_INSTRUCTORS;
+}
+
+function saveStoredInstructors(instructors: any[]): void {
+  try {
+    fs.writeFileSync(INSTRUCTORS_FILE, JSON.stringify(instructors, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Error writing instructors file:', err);
+  }
+}
+
+function getStoredProjects(): any[] {
+  try {
+    if (fs.existsSync(PROJECTS_FILE)) {
+      const data = fs.readFileSync(PROJECTS_FILE, 'utf-8');
+      return JSON.parse(data);
+    }
+  } catch (err) {
+    console.error('Error reading projects file:', err);
+  }
+  return [];
+}
+
+function saveStoredProjects(projects: any[]): void {
+  try {
+    fs.writeFileSync(PROJECTS_FILE, JSON.stringify(projects, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Error writing projects file:', err);
+  }
+}
+
+// Endpoints for Instructor Authentication & Directory
+app.get('/api/auth/instructors', (_req: Request, res: Response) => {
+  const instructors = getStoredInstructors();
+  return res.json({ instructors });
+});
+
+app.post('/api/auth/register', (req: Request, res: Response) => {
+  const { name, nip, email, role, division } = req.body;
+  if (!name || !nip) {
+    return res.status(400).json({ error: 'Nama pengajar dan NIP wajib diisi.' });
+  }
+
+  const instructors = getStoredInstructors();
+  const newInstructor = {
+    id: `inst-${Date.now()}`,
+    name,
+    nip,
+    email: email || `${name.toLowerCase().replace(/[^a-z]/g, '')}@komdigi.go.id`,
+    role: role || 'Instruktur BLSDM',
+    division: division || 'Pelatihan Digital BLSDM Komdigi Surabaya',
+    avatarColor: ['#6C5CE7', '#35A875', '#E7A23B', '#0984E3', '#E84393'][
+      instructors.length % 5
+    ],
+  };
+
+  instructors.push(newInstructor);
+  saveStoredInstructors(instructors);
+  return res.status(201).json({ instructor: newInstructor });
+});
+
+// Endpoints for Multi-Device Cloud Projects Storage
+app.get('/api/projects', (_req: Request, res: Response) => {
+  const projects = getStoredProjects();
+  return res.json({ projects, count: projects.length, syncedAt: new Date().toISOString() });
+});
+
+app.get('/api/projects/:id', (req: Request, res: Response) => {
+  const projects = getStoredProjects();
+  const proj = projects.find((p) => p.id === req.params.id);
+  if (!proj) {
+    return res.status(404).json({ error: 'Proyek pelatihan tidak ditemukan di server.' });
+  }
+  return res.json({ project: proj });
+});
+
+app.post('/api/projects', (req: Request, res: Response) => {
+  const project = req.body;
+  if (!project || !project.id || !project.input) {
+    return res.status(400).json({ error: 'Data proyek tidak lengkap.' });
+  }
+
+  const projects = getStoredProjects();
+  const existingIdx = projects.findIndex((p) => p.id === project.id);
+
+  const updatedProject = {
+    ...project,
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (existingIdx >= 0) {
+    projects[existingIdx] = updatedProject;
+  } else {
+    projects.unshift(updatedProject);
+  }
+
+  saveStoredProjects(projects);
+  return res.json({ success: true, project: updatedProject, message: 'Tersinkronisasi ke Cloud Server BLSDM.' });
+});
+
+app.delete('/api/projects/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const projects = getStoredProjects();
+  const filtered = projects.filter((p) => p.id !== id);
+  saveStoredProjects(filtered);
+  return res.json({ success: true, message: 'Proyek berhasil dihapus dari server.' });
+});
+
+app.post('/api/projects/:id/duplicate', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { creatorId, creatorName, creatorRole, creatorNip } = req.body;
+  const projects = getStoredProjects();
+  const source = projects.find((p) => p.id === id);
+
+  if (!source) {
+    return res.status(404).json({ error: 'Proyek sumber tidak ditemukan.' });
+  }
+
+  const newId = `proj-${Date.now()}`;
+  const duplicated = {
+    ...source,
+    id: newId,
+    creatorId: creatorId || source.creatorId,
+    creatorName: creatorName || source.creatorName,
+    creatorRole: creatorRole || source.creatorRole,
+    creatorNip: creatorNip || source.creatorNip,
+    isShared: true,
+    lastEditedBy: creatorName || 'Instruktur',
+    input: {
+      ...source.input,
+      trainingName: `Salinan - ${source.input.trainingName}`,
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  projects.unshift(duplicated);
+  saveStoredProjects(projects);
+  return res.status(201).json({ success: true, project: duplicated });
+});
 
 // Initialize GoogleGenAI client on server
 const ai = new GoogleGenAI({
@@ -50,12 +254,12 @@ PRIMARY RULES & INSTRUCTIONS:
 // Helper to sanitize JSON response from Gemini
 function cleanJsonResponse(raw: string): any {
   let cleaned = raw.trim();
-  if (cleaned.startsWith('```json')) {
+  if (cleaned.startsWith('\`\`\`json')) {
     cleaned = cleaned.substring(7);
-  } else if (cleaned.startsWith('```')) {
+  } else if (cleaned.startsWith('\`\`\`')) {
     cleaned = cleaned.substring(3);
   }
-  if (cleaned.endsWith('```')) {
+  if (cleaned.endsWith('\`\`\`')) {
     cleaned = cleaned.substring(0, cleaned.length - 3);
   }
   cleaned = cleaned.trim();
@@ -165,6 +369,17 @@ Generate comprehensive training documents for:
 - Referensi / Catatan Tambahan: ${input.referenceText || '-'}
 - Modul yang diminta: ${module} (Pilihan: ${JSON.stringify(input.selectedOutputs)})
 
+ATURAN PROPORSI WAJIB MATERI (30% TEORI & 70% PRAKTIK & TOOLS):
+- MATERI LENGKAP & SLIDE PRESENTASI WAJIB MEMENUHI PROPORSI:
+  1. 30% TEORI KONSEPTUAL: Dasar hukum (SE Menkominfo No 9/2023, SKKNI), konsep dasar, prinsip pokok secara padat dan tidak bertele-tele.
+  2. 70% TUTORIAL PRAKTIK, TOOLS NYATA & STUDI KASUS:
+     - Panduan langkah demi langkah (Step-by-step) eksplisit yang langsung dipraktikkan peserta pada perangkat masing-masing.
+     - Rekomendasi tools konkret (contoh: Google Colab, VS Code, HuggingFace, Cursor, Ollama, Postman, Wireshark, Canva Pro, Google AI Studio, dsb yang relevan dengan topik).
+     - Prompt template teruji / sintaks kerja / konfigurasi nyata.
+     - Studi kasus riil instansi pemerintah, BUMN, atau industri di Indonesia.
+     - Tugas latihan mandiri terstruktur.
+- Pada rancangan slide: 30% slide konsep/pengantar, 70% slide demonstrasi tools, alur kerja praktik, dan lab hands-on instruktur.
+
 ATURAN SUMBER DATA KHUSUS EVALUASI (PRE-TEST & POST-TEST):
 - Soal Pre-Test dan Post-Test (masing-masing tepat 20 butir) HANYA BERSUMBER DARI SUBSTANSI MATERI PELATIHAN.
 - DILARANG KERAS membuat soal tentang hal teknis diklat (seperti jumlah JP, definisi 1 JP = 45 menit, bobot persentase nilai post-test 30%, batas absensi 10%, jadwal istirahat, dsb).
@@ -260,17 +475,21 @@ Hasilkan JSON dengan struktur berikut:
   },
   "material": {
     "title": "${input.trainingName}",
-    "summary": "Ringkasan komprehensif materi pelatihan",
+    "summary": "Ringkasan komprehensif materi pelatihan (30% teori dan 70% praktik, tools, dan studi kasus terapan)",
     "learningObjectives": ["tujuan 1", "tujuan 2", "tujuan 3"],
     "sections": [
       {
         "id": "sec-1",
-        "title": "Bab I: Konsep Dasar dan Relevansi",
-        "conceptSummary": "Ringkasan konsep pokok bab ini",
-        "explanation": "Penjelasan mendalam dan sistematis mengenai teori serta prinsip dasar...",
-        "examples": ["Contoh aplikasi 1", "Contoh implementasi 2"],
-        "practiceSteps": ["Langkah 1", "Langkah 2", "Langkah 3"],
-        "caseStudyOrExercise": "Latihan mandiri atau studi kasus..."
+        "title": "Bab I: Konsep Dasar dan Relevansi (30% Teori)",
+        "conceptSummary": "Ringkasan padat konsep pokok dan landasan regulasi acuan",
+        "explanation": "Penjelasan inti teori, regulasi, dan prinsip pokok tanpa bertele-tele...",
+        "examples": ["Contoh aplikasi nyata 1", "Contoh implementasi 2"],
+        "practiceSteps": [
+          "Langkah Praktik 1: Konfigurasi tool/environment pada laptop peserta",
+          "Langkah Praktik 2: Eksekusi tutorial atau prompt kerja terstruktur",
+          "Langkah Praktik 3: Validasi hasil output dan pengecekan kualitas"
+        ],
+        "caseStudyOrExercise": "Studi kasus riil instansi/industri di Indonesia dan lembar penugasan praktik mandiri peserta."
       }
     ],
     "summaryNotes": "Kesimpulan materi...",
@@ -280,9 +499,17 @@ Hasilkan JSON dengan struktur berikut:
         "title": "Surat Edaran Menkominfo RI No 9 Tahun 2023 tentang Etika Kecerdasan Artifisial",
         "publisherOrAuthor": "Kementerian Komunikasi dan Informatika RI",
         "yearOrDate": "2023",
-        "url": "https://jdih.kominfo.go.id",
+        "url": "https://jdih.kominfo.go.id/produk_hukum/view/id/888/t/surat+edaran+menteri+komunikasi+dan+informatika+nomor+9+tahun+2023",
+        "domainName": "jdih.kominfo.go.id",
+        "category": "Regulasi & Kebijakan Nasional",
+        "credibilityLevel": "Tingkat 1 (Regulasi/Standar Resmi Negara)",
         "verificationStatus": "Terverifikasi",
-        "notes": "Pedoman etika AI nasional"
+        "mappedChapters": ["Bab I: Konsep Dasar dan Relevansi"],
+        "citationCode": "[REF-SE9-2023]",
+        "documentType": "Surat Edaran Menteri",
+        "verifiedBy": "Tim Kurikulum BLSDM Komdigi Surabaya",
+        "directExcerptOrSummary": "Memuat 9 nilai etika penyelenggaraan AI: inklusivitas, kemanusiaan, keamanan, aksesibilitas, transparansi, kredibilitas, pelindungan data pribadi, keberlanjutan, dan kekayaan intelektual.",
+        "notes": "Pedoman etika AI nasional untuk aparatur dan publik"
       }
     ]
   },
@@ -292,10 +519,10 @@ Hasilkan JSON dengan struktur berikut:
         "slideNumber": 1,
         "title": "${input.trainingName}",
         "mainMessage": "Pengantar materi pelatihan digital BLSDM Komdigi Surabaya",
-        "bulletPoints": ["Nama Instansi: BLSDM Komdigi Surabaya", "Nama Pengajar", "Tempat & Waktu Pelaksanaan"],
-        "speakerNotes": "Sambut para peserta dengan hangat. Jelaskan tujuan singkat pelatihan dan dorong antusiasme peserta.",
-        "visualSuggestion": "Background resmi bergradasi biru-violet dengan layout title slide minimalis.",
-        "discussionPrompt": "Pertanyaan pemantik: Apa ekspektasi terbesar Bapak/Ibu dalam pelatihan ini?"
+        "bulletPoints": ["Nama Instansi: BLSDM Komdigi Surabaya", "Nama Pengajar", "Struktur Pembelajaran: 30% Teori, 70% Hands-on Praktik"],
+        "speakerNotes": "Sambut para peserta dengan hangat. Jelaskan bahwa 70% durasi kelas adalah praktik langsung dan studi kasus.",
+        "visualSuggestion": "Background resmi bergradasi violet modern dengan layout title slide minimalis.",
+        "discussionPrompt": "Pertanyaan pemantik: Apa tantangan terbesar yang dihadapi dalam praktik kerja saat ini?"
       }
     ]
   },
@@ -348,7 +575,7 @@ CATATAN WAJIB:
     }
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
+      model: 'gemini-2.5-flash',
       contents: prompt,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,

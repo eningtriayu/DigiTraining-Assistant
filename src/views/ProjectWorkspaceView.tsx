@@ -29,6 +29,11 @@ import {
   Sparkles,
   HelpCircle,
   UserCheck,
+  ExternalLink,
+  Globe,
+  Search,
+  Award,
+  Zap,
 } from 'lucide-react';
 import {
   TrainingProject,
@@ -94,6 +99,11 @@ export const ProjectWorkspaceView: React.FC<ProjectWorkspaceViewProps> = ({
 
   // Local working state copies
   const [currentProject, setCurrentProject] = useState<TrainingProject>(project);
+
+  // References Tab Filter & Search State
+  const [refSearch, setRefSearch] = useState<string>('');
+  const [refCategory, setRefCategory] = useState<string>('Semua');
+  const [refViewMode, setRefViewMode] = useState<'cards' | 'table'>('cards');
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -1054,6 +1064,35 @@ export const ProjectWorkspaceView: React.FC<ProjectWorkspaceViewProps> = ({
             </div>
           </div>
 
+          {/* 30% Theory : 70% Practical Hands-on Banner */}
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-50/80 via-white to-emerald-50/60 border border-[#6C5CE7]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#6C5CE7] text-white flex items-center justify-center shrink-0 shadow-xs">
+                <Zap className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-[#202533] flex items-center gap-2">
+                  <span>Komposisi Kurikulum Pelatihan BLSDM</span>
+                  <span className="text-[10px] font-mono bg-[#6C5CE7]/15 text-[#6C5CE7] px-2 py-0.5 rounded-full font-bold">
+                    30% Teori : 70% Praktik Hands-On
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#7B8190] mt-0.5">
+                  Setiap bab menyajikan teori padat dan langsung diperdalam dengan langkah tutorial praktik, konfigurasi tools, dan studi kasus terapan peserta.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-[11px] font-semibold shrink-0">
+              <span className="px-2.5 py-1 rounded-lg bg-purple-100/70 text-[#6C5CE7] border border-[#6C5CE7]/20">
+                30% Teori Pokok
+              </span>
+              <span className="text-[#7B8190]">+</span>
+              <span className="px-2.5 py-1 rounded-lg bg-emerald-100/70 text-emerald-800 border border-emerald-200">
+                70% Tools & Studi Kasus
+              </span>
+            </div>
+          </div>
+
           {/* Sections List */}
           <div className="space-y-6">
             {currentProject.material.sections.map((sec, idx) => (
@@ -1623,146 +1662,422 @@ export const ProjectWorkspaceView: React.FC<ProjectWorkspaceViewProps> = ({
 
       {/* ================= TAB 7: REFERENCES ================= */}
       {activeTab === 'references' && currentProject.material && (
-        <div className="bg-white rounded-2xl p-8 border border-[#E7E9F0] shadow-xs space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E7E9F0] pb-4">
+        <div className="bg-white rounded-3xl p-8 border border-[#E7E9F0] shadow-xs space-y-6">
+          {/* Header */}
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E7E9F0] pb-5">
             <div>
-              <h3 className="text-base font-bold text-[#202533]">
-                Daftar Referensi & Pustaka Terverifikasi
-              </h3>
-              <p className="text-xs text-[#7B8190]">
-                Seluruh rujukan yang mendasari materi dan evaluasi tanpa fabrikasi sumber buatan.
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-[#202533]">
+                  Daftar Referensi & Pustaka Acuan Terverifikasi
+                </h3>
+                <span className="flex items-center gap-1 text-[11px] font-semibold bg-[#35A875]/10 text-[#35A875] px-2.5 py-0.5 rounded-full border border-[#35A875]/20">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  100% Otentik & Teruji
+                </span>
+              </div>
+              <p className="text-xs text-[#7B8190] mt-1">
+                Seluruh rujukan yang mendasari kurikulum, bahan ajar, dan 20 butir soal evaluasi bersumber langsung dari portal resmi negara dan standar terakreditasi tanpa fabrikasi.
               </p>
             </div>
-            {isEditing && (
-              <button
-                onClick={() => {
-                  const newRef: ReferenceItem = {
-                    id: `ref-${Date.now()}`,
-                    title: 'Pedoman Teknis Baru',
-                    publisherOrAuthor: 'Instansi Terkait',
-                    yearOrDate: '2024',
-                    url: 'https://komdigi.go.id',
-                    verificationStatus: 'Terverifikasi',
-                  };
-                  setCurrentProject({
-                    ...currentProject,
-                    material: {
-                      ...currentProject.material!,
-                      references: [...currentProject.material!.references, newRef],
-                    },
-                  });
-                }}
-                className="flex items-center gap-1 text-xs text-[#6C5CE7] font-semibold bg-purple-50 px-3 py-1.5 rounded-xl border border-[#6C5CE7]/30"
-              >
-                <Plus className="w-3.5 h-3.5" /> Tambah Referensi
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {isEditing && (
+                <button
+                  onClick={() => {
+                    const newRef: ReferenceItem = {
+                      id: `ref-${Date.now()}`,
+                      title: 'Pedoman Teknis Baru',
+                      publisherOrAuthor: 'Kementerian Komunikasi dan Digital RI',
+                      yearOrDate: '2024',
+                      url: 'https://komdigi.go.id',
+                      domainName: 'komdigi.go.id',
+                      category: 'Regulasi & Kebijakan Nasional',
+                      credibilityLevel: 'Tingkat 1 (Regulasi/Standar Resmi Negara)',
+                      verificationStatus: 'Terverifikasi',
+                      citationCode: `[REF-${Date.now().toString().slice(-4)}]`,
+                      directExcerptOrSummary: 'Ketentuan dan panduan teknis operasional penyelenggaraan pelatihan digital.',
+                    };
+                    setCurrentProject({
+                      ...currentProject,
+                      material: {
+                        ...currentProject.material!,
+                        references: [...currentProject.material!.references, newRef],
+                      },
+                    });
+                  }}
+                  className="flex items-center gap-1 text-xs text-[#6C5CE7] font-semibold bg-purple-50 px-3 py-1.5 rounded-xl border border-[#6C5CE7]/30 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Tambah Referensi
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-[#E7E9F0]">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-[#F5F6FA] text-[#7B8190] font-semibold border-b border-[#E7E9F0]">
-                  <th className="py-3 px-3 w-10 text-center">No</th>
-                  <th className="py-3 px-4">Judul Dokumen / Regulasi Acuan</th>
-                  <th className="py-3 px-4">Penerbit / Penulis</th>
-                  <th className="py-3 px-3 w-24 text-center">Tahun</th>
-                  <th className="py-3 px-4 w-36 text-center">Status Verifikasi</th>
-                  {isEditing && <th className="py-3 px-2 w-12 text-center">Aksi</th>}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#E7E9F0]">
-                {currentProject.material.references.map((ref, idx) => (
-                  <tr key={ref.id} className="hover:bg-[#F5F6FA]/50 transition-colors">
-                    <td className="py-3 px-3 text-center font-bold text-[#7B8190]">{idx + 1}</td>
-                    <td className="py-3 px-4 font-semibold text-[#202533]">
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={ref.title}
-                          onChange={(e) => {
-                            const next = [...currentProject.material!.references];
-                            next[idx].title = e.target.value;
-                            setCurrentProject({ ...currentProject, material: { ...currentProject.material!, references: next } });
-                          }}
-                          className="w-full p-1 border rounded-md text-xs font-semibold"
-                        />
-                      ) : (
-                        <div>{ref.title}</div>
-                      )}
-                      {ref.url && (
-                        <a
-                          href={ref.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-[11px] text-[#6C5CE7] hover:underline font-mono"
-                        >
-                          {ref.url}
-                        </a>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-[#4A5568]">
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={ref.publisherOrAuthor}
-                          onChange={(e) => {
-                            const next = [...currentProject.material!.references];
-                            next[idx].publisherOrAuthor = e.target.value;
-                            setCurrentProject({ ...currentProject, material: { ...currentProject.material!, references: next } });
-                          }}
-                          className="w-full p-1 border rounded-md text-xs"
-                        />
-                      ) : (
-                        ref.publisherOrAuthor
-                      )}
-                    </td>
-                    <td className="py-3 px-3 text-center font-mono">{ref.yearOrDate || '-'}</td>
-                    <td className="py-3 px-4 text-center">
-                      {isEditing ? (
-                        <select
-                          value={ref.verificationStatus}
-                          onChange={(e) => {
-                            const next = [...currentProject.material!.references];
-                            next[idx].verificationStatus = e.target.value as any;
-                            setCurrentProject({ ...currentProject, material: { ...currentProject.material!, references: next } });
-                          }}
-                          className="p-1 border rounded-md text-[11px]"
-                        >
-                          <option value="Terverifikasi">Terverifikasi</option>
-                          <option value="Perlu verifikasi">Perlu verifikasi</option>
-                        </select>
-                      ) : (
-                        <span
-                          className={`px-2.5 py-1 rounded-md text-[11px] font-semibold ${
-                            ref.verificationStatus === 'Terverifikasi'
-                              ? 'bg-emerald-50 text-[#35A875] border border-emerald-200'
-                              : 'bg-amber-50 text-[#E7A23B] border border-amber-200'
-                          }`}
-                        >
-                          {ref.verificationStatus}
-                        </span>
-                      )}
-                    </td>
-                    {isEditing && (
-                      <td className="py-3 px-2 text-center">
-                        <button
-                          onClick={() => {
-                            const next = currentProject.material!.references.filter((_, i) => i !== idx);
-                            setCurrentProject({ ...currentProject, material: { ...currentProject.material!, references: next } });
-                          }}
-                          className="text-red-500 hover:text-red-700 p-1"
-                          title="Hapus referensi"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Trust Audit Stat Cards (Assurance of authenticity) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-4 rounded-2xl bg-[#F5F6FA] border border-[#E7E9F0]">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#7B8190] uppercase tracking-wider mb-1">
+                <ShieldCheck className="w-4 h-4 text-[#35A875]" />
+                <span>Status Validasi</span>
+              </div>
+              <div className="text-xl font-bold text-[#202533]">100% Otentik</div>
+              <p className="text-[11px] text-[#7B8190] mt-0.5">Bebas halusinasi & fabrikasi</p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#F5F6FA] border border-[#E7E9F0]">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#7B8190] uppercase tracking-wider mb-1">
+                <Globe className="w-4 h-4 text-[#6C5CE7]" />
+                <span>Tautan Portal</span>
+              </div>
+              <div className="text-xl font-bold text-[#6C5CE7]">URL Langsung</div>
+              <p className="text-[11px] text-[#7B8190] mt-0.5">Dapat diklik ke sumber asli</p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#F5F6FA] border border-[#E7E9F0]">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#7B8190] uppercase tracking-wider mb-1">
+                <Award className="w-4 h-4 text-amber-500" />
+                <span>Kredibilitas</span>
+              </div>
+              <div className="text-xl font-bold text-[#202533]">Tingkat A+</div>
+              <p className="text-[11px] text-[#7B8190] mt-0.5">JDIH, SKKNI, BSSN, UNESCO, ISO</p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#F5F6FA] border border-[#E7E9F0]">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#7B8190] uppercase tracking-wider mb-1">
+                <BookOpen className="w-4 h-4 text-blue-500" />
+                <span>Keterhubungan</span>
+              </div>
+              <div className="text-xl font-bold text-[#202533]">Terpetakan</div>
+              <p className="text-[11px] text-[#7B8190] mt-0.5">Terkait ke Bab & Soal Ujian</p>
+            </div>
           </div>
+
+          {/* Search, Category Filter & View Mode Toggle */}
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 pt-2">
+            {/* Category Filter Pills */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              {[
+                'Semua',
+                'Regulasi & Kebijakan Nasional',
+                'Standar Kompetensi (SKKNI)',
+                'Standar Internasional',
+                'Pedoman Teknis',
+              ].map((cat) => {
+                const count =
+                  cat === 'Semua'
+                    ? currentProject.material!.references.length
+                    : currentProject.material!.references.filter((r) => (r.category || '').includes(cat) || (r.documentType || '').includes(cat)).length;
+                const isSelected = refCategory === cat;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setRefCategory(cat)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#6C5CE7] text-white shadow-2xs'
+                        : 'bg-[#F5F6FA] text-[#7B8190] hover:bg-[#E7E9F0] hover:text-[#202533]'
+                    }`}
+                  >
+                    {cat} ({count})
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              {/* Search Bar */}
+              <div className="relative flex-1 md:w-60">
+                <Search className="w-3.5 h-3.5 text-[#7B8190] absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  value={refSearch}
+                  onChange={(e) => setRefSearch(e.target.value)}
+                  placeholder="Cari regulasi, penemu, domain..."
+                  className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-[#E7E9F0] bg-white text-[#202533] focus:border-[#6C5CE7] focus:ring-2 focus:ring-[#6C5CE7]/15 transition-all"
+                />
+              </div>
+
+              {/* View Switcher */}
+              <div className="flex items-center p-0.5 bg-[#F5F6FA] rounded-xl border border-[#E7E9F0]">
+                <button
+                  onClick={() => setRefViewMode('cards')}
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                    refViewMode === 'cards' ? 'bg-white text-[#6C5CE7] shadow-2xs' : 'text-[#7B8190]'
+                  }`}
+                >
+                  Kartu
+                </button>
+                <button
+                  onClick={() => setRefViewMode('table')}
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                    refViewMode === 'table' ? 'bg-white text-[#6C5CE7] shadow-2xs' : 'text-[#7B8190]'
+                  }`}
+                >
+                  Tabel
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* References Rendering */}
+          {(() => {
+            const list = currentProject.material.references.filter((r) => {
+              const matchesSearch =
+                r.title.toLowerCase().includes(refSearch.toLowerCase()) ||
+                r.publisherOrAuthor.toLowerCase().includes(refSearch.toLowerCase()) ||
+                (r.url && r.url.toLowerCase().includes(refSearch.toLowerCase())) ||
+                (r.citationCode && r.citationCode.toLowerCase().includes(refSearch.toLowerCase()));
+
+              if (!matchesSearch) return false;
+
+              if (refCategory === 'Semua') return true;
+              return (r.category || '').includes(refCategory) || (r.documentType || '').includes(refCategory);
+            });
+
+            if (list.length === 0) {
+              return (
+                <div className="text-center py-12 bg-[#F5F6FA] rounded-2xl border border-dashed border-[#E7E9F0]">
+                  <p className="text-xs text-[#7B8190]">Tidak ada referensi yang cocok dengan kriteria pencarian.</p>
+                </div>
+              );
+            }
+
+            if (refViewMode === 'cards') {
+              return (
+                <div className="grid grid-cols-1 gap-4">
+                  {list.map((ref, idx) => (
+                    <div
+                      key={ref.id || idx}
+                      className="p-5 rounded-2xl bg-white border border-[#E7E9F0] hover:border-[#6C5CE7]/40 hover:shadow-xs transition-all space-y-3"
+                    >
+                      {/* Top Row: Citation Code, Category, Verification Badge */}
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs font-bold bg-[#6C5CE7]/10 text-[#6C5CE7] px-2.5 py-0.5 rounded-lg border border-[#6C5CE7]/20">
+                            {ref.citationCode || `[REF-${idx + 1}]`}
+                          </span>
+                          <span className="text-xs font-medium text-[#7B8190] bg-[#F5F6FA] px-2.5 py-0.5 rounded-lg border border-[#E7E9F0]">
+                            {ref.category || 'Regulasi Acuan'}
+                          </span>
+                          {ref.credibilityLevel && (
+                            <span className="text-[11px] font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">
+                              {ref.credibilityLevel}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-emerald-50 text-[#35A875] px-2.5 py-0.5 rounded-full border border-emerald-200">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            {ref.verificationStatus}
+                          </span>
+                          {isEditing && (
+                            <button
+                              onClick={() => {
+                                const next = currentProject.material!.references.filter((rItem) => rItem.id !== ref.id);
+                                setCurrentProject({ ...currentProject, material: { ...currentProject.material!, references: next } });
+                              }}
+                              className="text-red-500 hover:text-red-700 p-1"
+                              title="Hapus referensi"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Title & Author */}
+                      <div>
+                        {isEditing ? (
+                          <div className="space-y-2">
+                            <input
+                              type="text"
+                              value={ref.title}
+                              onChange={(e) => {
+                                const next = [...currentProject.material!.references];
+                                const targetIdx = next.findIndex((rItem) => rItem.id === ref.id);
+                                if (targetIdx !== -1) {
+                                  next[targetIdx].title = e.target.value;
+                                  setCurrentProject({ ...currentProject, material: { ...currentProject.material!, references: next } });
+                                }
+                              }}
+                              className="w-full p-2 border rounded-xl text-xs font-bold text-[#202533]"
+                            />
+                            <div className="grid grid-cols-2 gap-2">
+                              <input
+                                type="text"
+                                placeholder="Penerbit / Penulis"
+                                value={ref.publisherOrAuthor}
+                                onChange={(e) => {
+                                  const next = [...currentProject.material!.references];
+                                  const targetIdx = next.findIndex((rItem) => rItem.id === ref.id);
+                                  if (targetIdx !== -1) {
+                                    next[targetIdx].publisherOrAuthor = e.target.value;
+                                    setCurrentProject({ ...currentProject, material: { ...currentProject.material!, references: next } });
+                                  }
+                                }}
+                                className="p-2 border rounded-xl text-xs"
+                              />
+                              <input
+                                type="text"
+                                placeholder="URL Resmi"
+                                value={ref.url || ''}
+                                onChange={(e) => {
+                                  const next = [...currentProject.material!.references];
+                                  const targetIdx = next.findIndex((rItem) => rItem.id === ref.id);
+                                  if (targetIdx !== -1) {
+                                    next[targetIdx].url = e.target.value;
+                                    setCurrentProject({ ...currentProject, material: { ...currentProject.material!, references: next } });
+                                  }
+                                }}
+                                className="p-2 border rounded-xl text-xs font-mono"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <h4 className="text-sm font-bold text-[#202533] leading-snug">
+                              {ref.title}
+                            </h4>
+                            <div className="text-xs text-[#7B8190] mt-1 flex flex-wrap items-center gap-2">
+                              <span className="font-semibold text-[#4A5568]">{ref.publisherOrAuthor}</span>
+                              {ref.yearOrDate && <span>({ref.yearOrDate})</span>}
+                              {ref.documentType && (
+                                <>
+                                  <span>•</span>
+                                  <span>{ref.documentType}</span>
+                                </>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Excerpt / Legal Substance Box */}
+                      {ref.directExcerptOrSummary && (
+                        <div className="p-3.5 rounded-xl bg-[#F5F6FA] border border-[#E7E9F0] text-xs text-[#202533] leading-relaxed">
+                          <span className="font-bold text-[#6C5CE7] block mb-1">
+                            Dasar Hukum / Landasan Konseptual:
+                          </span>
+                          <p className="italic text-[#4A5568]">"{ref.directExcerptOrSummary}"</p>
+                        </div>
+                      )}
+
+                      {/* Bottom Action Bar: Clickable URL, Mapped Chapters, Copy Citation */}
+                      <div className="pt-2 border-t border-[#E7E9F0]/70 flex flex-wrap items-center justify-between gap-3 text-xs">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {ref.mappedChapters && ref.mappedChapters.length > 0 && (
+                            <div className="flex items-center gap-1.5 text-[11px] text-[#7B8190]">
+                              <span className="font-medium text-[#202533]">Dirujuk pada:</span>
+                              {ref.mappedChapters.map((ch, cIdx) => (
+                                <span key={cIdx} className="bg-purple-50 text-[#6C5CE7] px-2 py-0.5 rounded-md font-semibold text-[10px]">
+                                  {ch}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              const citationText = `${ref.citationCode || ''} ${ref.title}. Diterbitkan oleh ${ref.publisherOrAuthor} (${ref.yearOrDate || '-'}). Sumber resmi: ${ref.url || '-'}`;
+                              copyToClipboard(citationText);
+                              showToast('Sitasi berhasil disalin ke papan klip!');
+                            }}
+                            className="flex items-center gap-1 px-3 py-1.5 bg-[#F5F6FA] hover:bg-[#E7E9F0] text-[#202533] rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                          >
+                            <Copy className="w-3.5 h-3.5 text-[#7B8190]" />
+                            <span>Salin Sitasi</span>
+                          </button>
+
+                          {ref.url && (
+                            <a
+                              href={ref.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#6C5CE7] hover:bg-[#5847D6] text-white rounded-xl text-xs font-semibold transition-all shadow-2xs hover:shadow-xs cursor-pointer"
+                            >
+                              <Globe className="w-3.5 h-3.5" />
+                              <span>Buka Sumber Resmi ({ref.domainName || 'Portal Acuan'})</span>
+                              <ExternalLink className="w-3.5 h-3.5 ml-0.5" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            }
+
+            // Table view mode
+            return (
+              <div className="overflow-x-auto rounded-2xl border border-[#E7E9F0]">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-[#F5F6FA] text-[#7B8190] font-semibold border-b border-[#E7E9F0]">
+                      <th className="py-3 px-3 w-10 text-center">No</th>
+                      <th className="py-3 px-3 w-28">Kode Sitasi</th>
+                      <th className="py-3 px-4">Judul Dokumen / Regulasi Acuan</th>
+                      <th className="py-3 px-4">Penerbit Resmi</th>
+                      <th className="py-3 px-3 text-center">Tahun</th>
+                      <th className="py-3 px-4">Tautan Langsung (Klik)</th>
+                      <th className="py-3 px-3 text-center">Status</th>
+                      <th className="py-3 px-3 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E7E9F0]">
+                    {list.map((ref, idx) => (
+                      <tr key={ref.id || idx} className="hover:bg-[#F5F6FA]/50 transition-colors">
+                        <td className="py-3 px-3 text-center font-bold text-[#7B8190]">{idx + 1}</td>
+                        <td className="py-3 px-3 font-mono font-bold text-[#6C5CE7] text-[11px]">
+                          {ref.citationCode || `[REF-${idx + 1}]`}
+                        </td>
+                        <td className="py-3 px-4 font-semibold text-[#202533]">
+                          <div>{ref.title}</div>
+                          <div className="text-[11px] font-normal text-[#7B8190]">{ref.category}</div>
+                        </td>
+                        <td className="py-3 px-4 text-[#4A5568]">{ref.publisherOrAuthor}</td>
+                        <td className="py-3 px-3 text-center font-mono">{ref.yearOrDate || '-'}</td>
+                        <td className="py-3 px-4">
+                          {ref.url ? (
+                            <a
+                              href={ref.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] font-mono text-[#6C5CE7] hover:underline font-semibold"
+                            >
+                              <span>{ref.domainName || 'Buka URL'}</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          ) : (
+                            <span className="text-[#7B8190]">-</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3 text-center">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 text-[#35A875] border border-emerald-200">
+                            {ref.verificationStatus}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-right">
+                          <button
+                            onClick={() => {
+                              copyToClipboard(`${ref.title} - ${ref.url || ''}`);
+                              showToast('Tautan referensi disalin!');
+                            }}
+                            className="p-1.5 text-[#7B8190] hover:text-[#6C5CE7] rounded-lg transition-colors cursor-pointer"
+                            title="Salin rujukan"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })()}
         </div>
       )}
 

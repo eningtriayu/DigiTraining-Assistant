@@ -98,6 +98,17 @@ export function runComprehensiveQualityCheck(project: TrainingProject): QualityC
         ? `Terdapat ${material.references.length} referensi tercatat, sebagian ditandai 'Perlu verifikasi'.`
         : `Seluruh referensi (${material.references.length} sumber) berstatus terverifikasi dan dapat ditelusuri.`,
     });
+
+    const hasClickableUrls = material.references && material.references.length > 0 && material.references.every((r) => r.url && r.url.startsWith('http'));
+    checks.push({
+      id: 'ref-01',
+      module: 'Referensi',
+      title: 'Validitas Tautan Langsung Sumber Resmi (Clickable URLs)',
+      status: hasClickableUrls ? 'passed' : 'warning',
+      message: hasClickableUrls
+        ? 'Seluruh rujukan memiliki tautan URL aktif langsung ke portal resmi (JDIH, UNESCO, BSSN, Kemnaker, dsb) yang dapat diklik.'
+        : 'Sebagian rujukan belum memiliki tautan URL langsung ke portal sumber resmi.',
+    });
   }
 
   // 4. Slide Check

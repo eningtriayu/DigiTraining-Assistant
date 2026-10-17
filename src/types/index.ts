@@ -113,13 +113,52 @@ export interface RundownOutput {
   updatedAt: string;
 }
 
+export type InstructorRole =
+  | 'Instruktur BLSDM'
+  | 'Instruktur Ahli / Senior'
+  | 'Fasilitator Praktisi'
+  | 'Koordinator Kurikulum & Mutu';
+
+export interface InstructorProfile {
+  id: string;
+  name: string;
+  nip: string;
+  email: string;
+  role: InstructorRole;
+  division: string;
+  avatarColor?: string;
+  avatarUrl?: string;
+  specialties?: string[];
+}
+
+export type ReferenceCategory =
+  | 'Regulasi & Kebijakan Nasional'
+  | 'Standar Kompetensi (SKKNI)'
+  | 'Standar Global & Industri (ISO/IEEE/W3C)'
+  | 'Panduan & SOP Resmi Pemerintah'
+  | 'Riset & Jurnal Akademik Terakreditasi';
+
+export type CredibilityLevel =
+  | 'Tingkat 1 (Regulasi/Standar Resmi Negara)'
+  | 'Tingkat 2 (Konsensus Industri & Internasional)'
+  | 'Tingkat 3 (Riset Ilmiah Terakreditasi)';
+
 export interface ReferenceItem {
   id: string;
   title: string;
   publisherOrAuthor: string;
   yearOrDate?: string;
   url?: string;
+  domainName?: string;
+  category?: ReferenceCategory;
+  credibilityLevel?: CredibilityLevel;
   verificationStatus: VerificationStatus;
+  mappedChapters?: string[];
+  citationCode?: string;
+  documentType?: string;
+  verifiedBy?: string;
+  verifiedAt?: string;
+  directExcerptOrSummary?: string;
   notes?: string;
 }
 
@@ -131,6 +170,7 @@ export interface MaterialSection {
   examples: string[];
   practiceSteps?: string[];
   caseStudyOrExercise?: string;
+  citationCodes?: string[];
 }
 
 export interface MaterialOutput {
@@ -211,6 +251,12 @@ export interface QualityCheckResult {
 
 export interface TrainingProject {
   id: string;
+  creatorId?: string;
+  creatorName?: string;
+  creatorNip?: string;
+  creatorRole?: InstructorRole;
+  isShared?: boolean;
+  lastEditedBy?: string;
   input: TrainingInput;
   syllabus?: SyllabusOutput;
   rundown?: RundownOutput;
